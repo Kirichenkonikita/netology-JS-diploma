@@ -13,9 +13,16 @@ class AccountsWidget {
    * Если переданный элемент не существует,
    * необходимо выкинуть ошибку.
    * */
-  constructor( element ) {
+  constructor(element) {
+    if (!element) {
+      throw new Error(`Передан пустой элемент!`);  
+    }
 
+    this.element = element;
+    this.registerEvents();
+    this.update();
   }
+
 
   /**
    * При нажатии на .create-account открывает окно
@@ -25,7 +32,6 @@ class AccountsWidget {
    * вызывает AccountsWidget.onSelectAccount()
    * */
   registerEvents() {
-
   }
 
   /**
@@ -39,7 +45,21 @@ class AccountsWidget {
    * метода renderItem()
    * */
   update() {
-
+    // Account.list(null, (err, resp) => {
+    //   if (resp && resp.success) {
+    //     console.log(resp);
+    //     resp.data.forEach(a => this.renderItem(a))
+    //   }
+    // })
+    const user = User.current();
+    if (user) {
+      Account.list(null, (error, response) => {
+        if (response.success) {
+          this.clear();
+          response.data.forEach(account => this.renderItem(account));
+        }
+      })
+    }
   }
 
   /**
@@ -48,7 +68,7 @@ class AccountsWidget {
    * в боковой колонке
    * */
   clear() {
-
+    this.element.querySelectorAll(`.account`).forEach(accountElement => accountElement.remove());
   }
 
   /**
@@ -68,7 +88,12 @@ class AccountsWidget {
    * item - объект с данными о счёте
    * */
   getAccountHTML(item){
-
+    return `<li class="active account" data-id="${item.id}">
+                <a href="#">
+                    <span>${item.name}</span>
+                    <span>${item.sum}</span>
+                </a>
+            </li>`
   }
 
   /**
@@ -78,6 +103,6 @@ class AccountsWidget {
    * и добавляет его внутрь элемента виджета
    * */
   renderItem(data){
-
+    this.element.insertAdjacentHTML(`beforeend`, this.getAccountHTML(data));
   }
 }
