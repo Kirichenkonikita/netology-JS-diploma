@@ -19,7 +19,6 @@ class AccountsWidget {
     }
 
     this.element = element;
-    this.registerEvents();
     this.update();
   }
 
@@ -32,6 +31,19 @@ class AccountsWidget {
    * вызывает AccountsWidget.onSelectAccount()
    * */
   registerEvents() {
+    const createAccountButton = this.element.querySelector(`.create-account`);
+    createAccountButton.onclick = event => {
+      event.preventDefault();
+      App.getModal(`createAccount`).open();
+    }
+    
+    this.element.querySelectorAll(`.account`).forEach(accountElement => accountElement.onclick = event => {
+      event.preventDefault();
+      accountElement.classList.remove(`.active`);
+      this.onSelectAccount(event.currentTarget);
+    })
+
+    this.element.querySelectorAll(`.active`).forEach(activeElement => activeElement.classList.remove(`active`));      
   }
 
   /**
@@ -45,18 +57,13 @@ class AccountsWidget {
    * метода renderItem()
    * */
   update() {
-    // Account.list(null, (err, resp) => {
-    //   if (resp && resp.success) {
-    //     console.log(resp);
-    //     resp.data.forEach(a => this.renderItem(a))
-    //   }
-    // })
     const user = User.current();
     if (user) {
-      Account.list(null, (error, response) => {
-        if (response.success) {
+      Account.list(null,(error, response) => {
+        if (response && response.success) {
           this.clear();
           response.data.forEach(account => this.renderItem(account));
+          this.registerEvents();
         }
       })
     }
@@ -78,8 +85,9 @@ class AccountsWidget {
    * счёта класс .active.
    * Вызывает App.showPage( 'transactions', { account_id: id_счёта });
    * */
-  onSelectAccount( element ) {
-
+  onSelectAccount(element) {
+    this.element.querySelectorAll(`.active`).forEach(activeElement => activeElement.classList.remove(`active`));      
+    element.classList.add(`active`);
   }
 
   /**

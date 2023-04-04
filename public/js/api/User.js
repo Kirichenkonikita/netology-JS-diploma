@@ -4,12 +4,14 @@
  * Имеет свойство URL, равное '/user'.
  * */
 class User {
+  static URL = `/user`;
+  
   /**
    * Устанавливает текущего пользователя в
    * локальном хранилище.
    * */
   static setCurrent(user) {
-
+    localStorage.setItem(`user`, JSON.stringify(user));
   }
 
   /**
@@ -17,7 +19,7 @@ class User {
    * пользователе из локального хранилища.
    * */
   static unsetCurrent() {
-
+    localStorage.removeItem(`user`);
   }
 
   /**
@@ -25,7 +27,8 @@ class User {
    * из локального хранилища
    * */
   static current() {
-
+    const user = localStorage.getItem(`user`);
+    return user ? JSON.parse(user) : undefined;
   }
 
   /**
@@ -33,9 +36,22 @@ class User {
    * авторизованном пользователе.
    * */
   static fetch(callback) {
+    createRequest({
+      url: this.URL + `/current`,
+      method: `GET`,
+      callback: (err, response) => {
+        if (response && response.user) {
+          this.setCurrent(response.user);
+        } else {
+          this.unsetCurrent();
+        }
 
+        callback(err, response);
+      }
+    });
   }
 
+  /*  */
   /**
    * Производит попытку авторизации.
    * После успешной авторизации необходимо
@@ -51,6 +67,8 @@ class User {
       callback: (err, response) => {
         if (response && response.user) {
           this.setCurrent(response.user);
+        } else {
+          this.unsetCurrent();
         }
         callback(err, response);
       }
@@ -64,7 +82,18 @@ class User {
    * User.setCurrent.
    * */
   static register(data, callback) {
+    createRequest({
+      url: this.URL + "/register",
+      method: "POST",
+      data, 
+      callback: (err, response) => {
+        if (response.success && response.user) {
+          this.setCurrent(response.user);
+        }
 
+        callback(err, response);
+      }
+    })
   }
 
   /**
@@ -72,6 +101,15 @@ class User {
    * выхода необходимо вызвать метод User.unsetCurrent
    * */
   static logout(callback) {
-
+    createRequest({
+      url: this.URL + "/logout",
+      method: "POST",
+      callback: (err, response) => {
+        if (response.success) {
+          this.unsetCurrent();
+        } 
+        callback(err, response);
+      }
+    })
   }
 }
